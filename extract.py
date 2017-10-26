@@ -32,7 +32,7 @@ class extract:
             if len(line) > 0:
                 # if line[0] == '}}' and group != [] and wtype != '':
                 # TODO this is a hack to work on the test file
-                if line[0] == '}}' and group != [] and wtype != '':
+                if line[0] == '}}' and group != [] and wtype != '' and citeform != '':
                     group.append(citeform)
                     if wtype == 'n':
                         nouns.append(group)
@@ -42,6 +42,11 @@ class extract:
                     else:
                         verbs.append(group)
                     # ignore the rest
+                    group = []
+                    wtype = ''
+                    citeform = ''
+                elif line[0] == '}}' and citeform == '':
+                    # remove the entries without citation forms
                     group = []
                     wtype = ''
                     citeform = ''
@@ -69,6 +74,7 @@ class extract:
 
     def rewrite_verb(self, paradigms):
         for p in paradigms:
+            # print("p", p)
             inf = p[-1].split()[1]
             assert(p[-1].split()[2] == '({{Sprache|Deutsch}})')
             for cell in p[1:-1]:
