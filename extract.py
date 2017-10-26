@@ -72,22 +72,29 @@ class extract:
         print("Total adjectives", len(adjec))
         return nouns, verbs, adjec
 
-    def rewrite_verb(self, paradigms):
+    def rewrite(self, paradigms):
         for p in paradigms:
-            # print("p", p)
-            inf = p[-1].split()[1]
-            assert(p[-1].split()[2] == '({{Sprache|Deutsch}})')
-            for cell in p[1:-1]:
-                cell = cell.split('=')
-                try:
-                    assert(len(cell) >= 0)
-                except:
-                    print(cell)
+            try:
+                inf = p[-1].split()[1]
+                if inf == 'entstiegen':
                     pdb.set_trace()
-                line = '\t'.join([inf, '-'.join(cell[0:-1])[1:], cell[-1]])
-                print(line)
+                # assert(p[-1].split()[2] == '({{Sprache|Deutsch}})')
+                if p[-1].split()[2] == '({{Sprache|Deutsch}})':
+                    for cell in p[1:-1]:
+                        cell = cell.split('=')
+                        try:
+                            assert(len(cell) >= 0)
+                        except:
+                            print(cell)
+                            pdb.set_trace()
+                        line = '\t'.join([inf, '-'.join(cell[0:-1])[1:], cell[-1]])
+                        print(line)
+            except:
+                # pdb.set_trace()
+                continue
 
 if __name__ == '__main__':
     e = extract()
     n, v, a = e.load_file()
-    e.rewrite_verb(v)
+    e.rewrite(v)
+    e.rewrite(n)
