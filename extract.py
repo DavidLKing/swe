@@ -72,29 +72,52 @@ class extract:
         print("Total adjectives", len(adjec))
         return nouns, verbs, adjec
 
+    def get_feats_n(self, gender, feat_list):
+            feats = "pos=N,"
+            feats += str(feat_list)
+            return feats
+
+    def get_feats_v(self, feat_list):
+            feats = "pos=V,"
+            feats += str(feat_list)
+            return feats
+
     def rewrite(self, paradigms):
         for p in paradigms:
-            try:
-                inf = p[-1].split()[1]
-                if inf == 'entstiegen':
-                    pdb.set_trace()
-                # assert(p[-1].split()[2] == '({{Sprache|Deutsch}})')
-                if p[-1].split()[2] == '({{Sprache|Deutsch}})':
-                    for cell in p[1:-1]:
-                        cell = cell.split('=')
-                        try:
-                            assert(len(cell) >= 0)
-                        except:
-                            print(cell)
-                            pdb.set_trace()
-                        line = '\t'.join([inf, '-'.join(cell[0:-1])[1:], cell[-1]])
-                        print(line)
-            except:
-                # pdb.set_trace()
-                continue
+            # try:
+            # pdb.set_trace()
+            if p[1].split('=')[0] == '|Genus':
+                wtype = 'n'
+                gender = p[1].split('=')[1]
+                p.pop(0)
+                p.pop(1)
+            else:
+                wtype = 'v'
+            inf = p[-1].split()[1]
+            # if inf == 'entstiegen':
+            #     pdb.set_trace()
+            # assert(p[-1].split()[2] == '({{Sprache|Deutsch}})')
+            if p[-1].split()[2] == '({{Sprache|Deutsch}})':
+                for cell in p[1:-1]:
+                    cell = cell.split('=')
+                    try:
+                        assert(len(cell) >= 0)
+                    except:
+                        print(cell)
+                        pdb.set_trace()
+                    # feats = ''.join(cell[0:-1])[1:]
+                    if wtype == 'n':
+                        feats = self.get_feats_n(gender, cell[0:-1])
+                    elif wtype == 'v':
+                        feats = self.get_feats_v(cell[0:-1])
+                    # pdb.set_trace()
+                    line = '\t'.join([inf, feats, cell[-1]])
+                    print(line)
+            # except:
+            #     continue
 
 if __name__ == '__main__':
     e = extract()
     n, v, a = e.load_file()
-    e.rewrite(v)
+    # e.rewrite(v)
     e.rewrite(n)
