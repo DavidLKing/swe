@@ -13,7 +13,16 @@ class extract:
         requiredNamed.add_argument('-i', '--input', help='Input file name', required=True)
         # parser.parse_args(['-h'])
         self.args = parser.parse_args()
-
+        # Maybe this is the best way to do it?
+        self.verbs = {
+            'Präsens_ich' : 'pos=V,mood=IND,tense=PRS,per=1,num=SG',
+            'Präsens_du' : 'pos=V,mood=IND,tense=PRS,per=2,num=SG',
+            'Präsens_er, sie, es' : 'pos=V,mood=IND,tense=PRS,per=3,num=SG',
+            'Partizip II' : 'pos=V,tense=PST',
+            'Präteritum_ich' : 'pos=V,mood={SBJV/COND},tense=PST,aspect=PFV,per=1,num=SG',
+            'Konjunktiv II_ich' : 'pos=V,mood={SBJV/COND},tense=PST,aspect=PFV,per=1,num=SG'
+            # 'Imperativ_Singular' :
+        }
 
     def load_file(self):
         xmlfile = self.args.input
@@ -81,14 +90,14 @@ class extract:
             return 'NEUT,'
 
     def conv_num(self, num):
-        if num == 'Singular':
+        if num == 'Singular' or num == 'Singular*':
             return 'num=SG'
         elif num == 'Plural':
             return 'num=PL'
 
-    def conv_feats(self, feat_list, gender):
+    def conv_feats_n(self, feat_list, gender):
         feat = 'case='
-        print('list', feat_list)
+        # print('list', feat_list)
         for word in feat_list:
             if word == 'Nominativ':
                 feat += 'NOM,gen='
@@ -102,61 +111,70 @@ class extract:
             elif word == 'Genitiv':
                 feat += 'GEN,gen='
                 feat += self.conv_gend(gender)
-            elif word in ['Singular', 'Plural']:
+            elif word in ['Singular', 'Singular*', 'Plural']:
                 feat += self.conv_num(word)
         return feat
+
+    def conv_feats_v(self, feat_list):
+        pass
 
     def get_feats_n(self, gender, feat_list):
             feat_list = ' '.join(feat_list).split()
             feats = "pos=N,"
-            feats += self.conv_feats(feat_list, gender)
+            feats += self.conv_feats_n(feat_list, gender)
             return feats
 
     def get_feats_v(self, feat_list):
-        print('v list', feat_list)
-        feats = "pos=V,"
-        feat_list = feat_list[1:].split()
-        feats += str(feat_list)
-        return feats
+        # print('v list', feat_list)
+        feat_list = '_'.join(feat_list)
+        if feat_list in self.verbs:
+            feats = self.verbs[feat_list]
+            return feats
 
     def rewrite(self, paradigms):
         for p in paradigms:
-            # try:
-            # pdb.set_trace()
             if p[1].split('=')[0] == '|Genus':
                 wtype = 'n'
                 gender = p[1].split('=')[1]
                 p.pop(0)
                 p.pop(1)
-            else:
+            elif p[1].split('=')[0] == '|Präsens_ich':
                 wtype = 'v'
-            inf = p[-1].split()[1]
-            # if inf == 'entstiegen':
-            #     pdb.set_trace()
-            # assert(p[-1].split()[2] == '({{Sprache|Deutsch}})')
-            if p[-1].split()[2] == '({{Sprache|Deutsch}})':
-                for cell in p[1:-1]:
-                    cell = cell[1:]
-                    cell = cell.split('=')
-                    try:
-                        assert(len(cell) >= 0)
-                    except:
-                        print(cell)
-                        pdb.set_trace()
-                    # feats = ''.join(cell[0:-1])[1:]
-                    print('wtype', inf, cell)
-                    if wtype == 'n':
-                        feats = self.get_feats_n(gender, cell[0:-1])
-                    elif wtype == 'v':
-                        feats = self.get_feats_v(cell[0:-1])
-                    # pdb.set_trace()
-                    line = '\t'.join([inf, feats, cell[-1]])
-                    print(line)
-            # except:
-            #     continue
+            # pdb.set_trace()
+            try:
+                inf = p[-1].split()[1]
+                if p[-1].split()[2] == '({{Sprache|Deutsch}})':
+                    for cell in p[1:-1]:
+                        if not cell.startswith("|Bild"):
+                            cell = cell[1:]
+                            cell = cell.split('=')
+                            try:
+                                assert(len(cell) >= 0)
+                            except:
+                                # print(cell)
+                                pdb.set_trace()
+                            if wtype == 'n':
+                                # print(cell[0:-1])
+                                feats = self.get_feats_n(gender, cell[0:-1])
+                            elif wtype == 'v':
+                                feats = self.get_feats_v(cell[0:-1])
+                                # pdb.set_trace()
+                            # if wtype != 'n':
+                            #     pdb.set_trace()
+                            line = '\t'.join([inf, feats, cell[-1]])
+                            print(line)
+                            if feats == 'pos=V,mood=IND,tense=PRS,per=3,num=SG':
+                                print('\t'.join([inf, 'pos=V,mood=IND,tense=PRS,per=2,num=PL', cell[-1]]))
+                    if wtype == 'v':
+                        print('\t'.join([inf, 'pos=V,mood=IND,tense=PRS,per=3,num=PL', inf]))
+                        print('\t'.join([inf, 'pos=V,mood=IND,tense=PRS,per=1,num=PL', inf]))
 
+
+            except:
+                continue
+                # pdb.set_trace()
 if __name__ == '__main__':
     e = extract()
     n, v, a = e.load_file()
-    # e.rewrite(v)
-    e.rewrite(n)
+    # e.rewrite(n)
+    e.rewrite(v)
