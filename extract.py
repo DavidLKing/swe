@@ -72,15 +72,52 @@ class extract:
         print("Total adjectives", len(adjec))
         return nouns, verbs, adjec
 
+    def conv_gend(self, gender):
+        if gender == 'm':
+            return 'MASC,'
+        elif gender == 'f':
+            return 'FEM,'
+        elif gender == 'n':
+            return 'NEUT,'
+
+    def conv_num(self, num):
+        if num == 'Singular':
+            return 'num=SG'
+        elif num == 'Plural':
+            return 'num=PL'
+
+    def conv_feats(self, feat_list, gender):
+        feat = 'case='
+        print('list', feat_list)
+        for word in feat_list:
+            if word == 'Nominativ':
+                feat += 'NOM,gen='
+                feat += self.conv_gend(gender)
+            elif word == "Akkusativ":
+                feat += 'ACC,gen='
+                feat += self.conv_gend(gender)
+            elif word == 'Dativ':
+                feat += 'DAT,gen='
+                feat += self.conv_gend(gender)
+            elif word == 'Genitiv':
+                feat += 'GEN,gen='
+                feat += self.conv_gend(gender)
+            elif word in ['Singular', 'Plural']:
+                feat += self.conv_num(word)
+        return feat
+
     def get_feats_n(self, gender, feat_list):
+            feat_list = ' '.join(feat_list).split()
             feats = "pos=N,"
-            feats += str(feat_list)
+            feats += self.conv_feats(feat_list, gender)
             return feats
 
     def get_feats_v(self, feat_list):
-            feats = "pos=V,"
-            feats += str(feat_list)
-            return feats
+        print('v list', feat_list)
+        feats = "pos=V,"
+        feat_list = feat_list[1:].split()
+        feats += str(feat_list)
+        return feats
 
     def rewrite(self, paradigms):
         for p in paradigms:
@@ -99,6 +136,7 @@ class extract:
             # assert(p[-1].split()[2] == '({{Sprache|Deutsch}})')
             if p[-1].split()[2] == '({{Sprache|Deutsch}})':
                 for cell in p[1:-1]:
+                    cell = cell[1:]
                     cell = cell.split('=')
                     try:
                         assert(len(cell) >= 0)
@@ -106,6 +144,7 @@ class extract:
                         print(cell)
                         pdb.set_trace()
                     # feats = ''.join(cell[0:-1])[1:]
+                    print('wtype', inf, cell)
                     if wtype == 'n':
                         feats = self.get_feats_n(gender, cell[0:-1])
                     elif wtype == 'v':
