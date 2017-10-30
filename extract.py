@@ -16,12 +16,30 @@ class extract:
         # Maybe this is the best way to do it?
         self.verbs = {
             'Präsens_ich' : 'pos=V,mood=IND,tense=PRS,per=1,num=SG',
+            'Präsens_ich*' : 'pos=V,mood=IND,tense=PRS,per=1,num=SG',
+            'Präsens_ich**' : 'pos=V,mood=IND,tense=PRS,per=1,num=SG',
+            'Präsens_ich ' : 'pos=V,mood=IND,tense=PRS,per=1,num=SG',
             'Präsens_du' : 'pos=V,mood=IND,tense=PRS,per=2,num=SG',
+            'Präsens_du*' : 'pos=V,mood=IND,tense=PRS,per=2,num=SG',
+            'Präsens_du**' : 'pos=V,mood=IND,tense=PRS,per=2,num=SG',
+            'Präsens_du ' : 'pos=V,mood=IND,tense=PRS,per=2,num=SG',
             'Präsens_er, sie, es' : 'pos=V,mood=IND,tense=PRS,per=3,num=SG',
+            'Präsens_er, sie, es*' : 'pos=V,mood=IND,tense=PRS,per=3,num=SG',
+            'Präsens_er, sie, es**' : 'pos=V,mood=IND,tense=PRS,per=3,num=SG',
+            'Präsens_er, sie, es ' : 'pos=V,mood=IND,tense=PRS,per=3,num=SG',
             'Partizip II' : 'pos=V,tense=PST',
+            'Partizip II*' : 'pos=V,tense=PST',
             'Präteritum_ich' : 'pos=V,mood={SBJV/COND},tense=PST,aspect=PFV,per=1,num=SG',
-            'Konjunktiv II_ich' : 'pos=V,mood={SBJV/COND},tense=PST,aspect=PFV,per=1,num=SG'
-            # 'Imperativ_Singular' :
+            'Präteritum_ich*' : 'pos=V,mood={SBJV/COND},tense=PST,aspect=PFV,per=1,num=SG',
+            'Präteritum_ich**' : 'pos=V,mood={SBJV/COND},tense=PST,aspect=PFV,per=1,num=SG',
+            'Konjunktiv II_ich' : 'pos=V,mood={SBJV/COND},tense=PST,aspect=PFV,per=1,num=SG',
+            'Konjunktiv II_ich*' : 'pos=V,mood={SBJV/COND},tense=PST,aspect=PFV,per=1,num=SG',
+            'Konjunktiv II_ich**' : 'pos=V,mood={SBJV/COND},tense=PST,aspect=PFV,per=1,num=SG',
+            'Imperativ Singular' : 'pos=V,mood=IMP,tense=PST,aspect=IPFV,per=2,num=SG',
+            'Imperativ Singular*' : 'pos=V,mood=IMP,tense=PST,aspect=IPFV,per=2,num=SG',
+            'Imperativ Singular**' : 'pos=V,mood=IMP,tense=PST,aspect=IPFV,per=2,num=SG',
+            'Imperativ Plural' : 'pos=V,mood=IMP,tense=PST,aspect=IPFV,per=2,num=PL',
+            'Imperativ Plural*' : 'pos=V,mood=IMP,tense=PST,aspect=IPFV,per=2,num=PL'
         }
 
     def load_file(self):
@@ -141,38 +159,43 @@ class extract:
             elif p[1].split('=')[0] == '|Präsens_ich':
                 wtype = 'v'
             # pdb.set_trace()
-            try:
-                inf = p[-1].split()[1]
-                if p[-1].split()[2] == '({{Sprache|Deutsch}})':
-                    for cell in p[1:-1]:
-                        if not cell.startswith("|Bild"):
-                            cell = cell[1:]
-                            cell = cell.split('=')
-                            try:
-                                assert(len(cell) >= 0)
-                            except:
-                                # print(cell)
-                                pdb.set_trace()
-                            if wtype == 'n':
-                                # print(cell[0:-1])
-                                feats = self.get_feats_n(gender, cell[0:-1])
-                            elif wtype == 'v':
-                                feats = self.get_feats_v(cell[0:-1])
-                                # pdb.set_trace()
-                            # if wtype != 'n':
-                            #     pdb.set_trace()
+            # try:
+            inf = p[-1].split()[1]
+            if p[-1].split()[2] == '({{Sprache|Deutsch}})':
+                for cell in p[1:-1]:
+                    if not cell.startswith("|Bild"):
+                        cell = cell[1:]
+                        cell = cell.split('=')
+                        try:
+                            assert(len(cell) >= 0)
+                        except:
+                            # print(cell)
+                            pdb.set_trace()
+                        if wtype == 'n':
+                            # print(cell[0:-1])
+                            feats = self.get_feats_n(gender, cell[0:-1])
+                        elif wtype == 'v':
+                            if cell[0] not in ['Hilfsverb', 'Hilfsverb*', 'Hilfsverb2']:
+                                if cell[0] not in ['{Deutsch Verb Übersicht']:
+                                    feats = self.get_feats_v(cell[0:-1])
+                                    # try:
+                                        # assert(feats != None)
+                                    # except:
+                                        # pdb.set_trace()
+                            # pdb.set_trace()
+                        # if wtype != 'n':
+                        #     pdb.set_trace()
+                        if feats != None:
                             line = '\t'.join([inf, feats, cell[-1]])
-                            print(line)
-                            if feats == 'pos=V,mood=IND,tense=PRS,per=3,num=SG':
-                                print('\t'.join([inf, 'pos=V,mood=IND,tense=PRS,per=2,num=PL', cell[-1]]))
-                    if wtype == 'v':
-                        print('\t'.join([inf, 'pos=V,mood=IND,tense=PRS,per=3,num=PL', inf]))
-                        print('\t'.join([inf, 'pos=V,mood=IND,tense=PRS,per=1,num=PL', inf]))
-
-
-            except:
-                continue
+                        print(line)
+                        if feats == 'pos=V,mood=IND,tense=PRS,per=3,num=SG':
+                            print('\t'.join([inf, 'pos=V,mood=IND,tense=PRS,per=2,num=PL', cell[-1]]))
+                            print('\t'.join([inf, 'pos=V,mood=IND,tense=PRS,per=3,num=PL', inf]))
+                            print('\t'.join([inf, 'pos=V,mood=IND,tense=PRS,per=1,num=PL', inf]))
+            # except:
+                # continue
                 # pdb.set_trace()
+
 if __name__ == '__main__':
     e = extract()
     n, v, a = e.load_file()
