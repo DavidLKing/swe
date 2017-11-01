@@ -36,6 +36,7 @@ class rank:
                 if len(line.split()) > 2:
                     if line.split()[2] == top:
                         ranked.append(line)
+            pdb.set_trace()
             counts.pop(top)
             lang.seek(0)
         return ranked
